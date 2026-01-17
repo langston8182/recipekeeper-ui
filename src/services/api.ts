@@ -1,6 +1,7 @@
 import type { ExtractionRequest, ExtractionResponse, HealthCheckResponse } from '../types/recipe';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
+const AI_API_URL = import.meta.env.VITE_AI_API_URL || '';
 
 export class ApiError extends Error {
   statusCode: number;
@@ -30,7 +31,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
 
 export const extractRecipe = async (request: ExtractionRequest): Promise<ExtractionResponse> => {
   try {
-    const response = await fetch(`${API_URL}/extract-recipe`, {
+    const response = await fetch(`${AI_API_URL}/extract-recipe`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

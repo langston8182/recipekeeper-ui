@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { extractRecipe, uploadRecipeFile, ApiError } from '../services/api';
@@ -19,11 +19,6 @@ export const AddRecipe = () => {
   const [errorDetails, setErrorDetails] = useState<string[]>([]);
   const [showDetails, setShowDetails] = useState(false);
   const [extractedRecipe, setExtractedRecipe] = useState<Recipe | null>(null);
-  const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [stream, setStream] = useState<MediaStream | null>(null);
-  
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const handleExtract = async () => {
     setError(null);
@@ -99,75 +94,7 @@ export const AddRecipe = () => {
     }
   };
 
-  const startCamera = useCallback(async () => {
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          facingMode: 'user'
-        },
-        audio: false
-      });
-      
-      setStream(mediaStream);
-      setIsCameraOpen(true);
-      setError(null);
-      
-      // Attendre que le composant soit monté avant d'attacher le stream
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = mediaStream;
-        }
-      }, 100);
-    } catch (err) {
-      setError('Impossible d\'accéder à la caméra. Vérifiez les permissions.');
-      console.error('Erreur caméra:', err);
-    }
-  }, []);
 
-  const stopCamera = useCallback(() => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
-    }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-    setIsCameraOpen(false);
-  }, [stream]);
-
-  const capturePhoto = useCallback(() => {
-    if (!videoRef.current || !canvasRef.current) {
-      console.error('Refs non disponibles');
-      return;
-    }
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    
-    // Vérifier que la vidéo a des dimensions valides
-    if (video.videoWidth === 0 || video.videoHeight === 0) {
-      setError('La vidéo n\'est pas encore prête. Attendez quelques instants.');
-      return;
-    }
-    
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    
-    const context = canvas.getContext('2d');
-    if (context) {
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const file = new File([blob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
-          setSelectedFile(file);
-          stopCamera();
-        }
-      }, 'image/jpeg', 0.9);
-    }
-  }, [stopCamera]);
 
   const getErrorHelp = (statusCode?: number) => {
     switch (statusCode) {
@@ -262,40 +189,7 @@ export const AddRecipe = () => {
           {mode === 'upload' && (
             <div className="form-section">
               <div className="file-upload-section">
-                {isCameraOpen ? (
-                  <div className="camera-preview">
-                    <video 
-                      ref={videoRef} 
-                      autoPlay 
-                      playsInline 
-                      muted
-                      className="video-preview"
-                      onLoadedMetadata={() => {
-                        console.log('Vidéo chargée');
-                        if (videoRef.current) {
-                          console.log('Dimensions:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight);
-                        }
-                      }}
-                    />
-                    <canvas ref={canvasRef} style={{ display: 'none' }} />
-                    <div className="camera-controls">
-                      <button
-                        className="btn-capture"
-                        onClick={capturePhoto}
-                        type="button"
-                      >
-                        📸 Capturer
-                      </button>
-                      <button
-                        className="btn-cancel"
-                        onClick={stopCamera}
-                        type="button"
-                      >
-                        ✕ Annuler
-                      </button>
-                    </div>
-                  </div>
-                ) : selectedFile ? (
+                {selectedFile ? (
                   <div className="file-selected">
                     <div className="file-info">
                       <span className="file-icon">
@@ -318,14 +212,19 @@ export const AddRecipe = () => {
                   </div>
                 ) : (
                   <div className="upload-buttons">
-                    <button
-                      type="button"
-                      className="camera-button"
-                      onClick={startCamera}
-                    >
+                    <label htmlFor="cameraInput" className="camera-button">
+                      <input
+                        id="cameraInput"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={handleFileChange}
+                        className="file-input"
+                        disabled={loading}
+                      />
                       <span className="button-icon">📷</span>
                       <span className="button-text">Ouvrir la caméra</span>
-                    </button>
+                    </label>
                     
                     <label htmlFor="fileSelect" className="file-button">
                       <input
@@ -343,7 +242,7 @@ export const AddRecipe = () => {
                 )}
               </div>
 
-              {selectedFile && !isCameraOpen && (
+              {selectedFile && (
                 <button
                   className="btn-primary"
                   onClick={handleFileUpload}
