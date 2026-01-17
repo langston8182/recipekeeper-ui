@@ -14,14 +14,18 @@ export const RecipeDetail = () => {
   const [activeTab, setActiveTab] = useState<TabType>('apercu');
 
   useEffect(() => {
-    if (id) {
-      const foundRecipe = storageService.getRecipeById(id);
-      if (foundRecipe) {
-        setRecipe(foundRecipe);
-      } else {
-        navigate('/');
+    const loadRecipe = async () => {
+      if (id) {
+        const foundRecipe = await storageService.getRecipeById(id);
+        if (foundRecipe) {
+          setRecipe(foundRecipe);
+        } else {
+          navigate('/');
+        }
       }
-    }
+    };
+
+    loadRecipe();
   }, [id, navigate]);
 
   if (!recipe) {
@@ -35,7 +39,7 @@ export const RecipeDetail = () => {
 
   const handleShare = () => {
     const text = `${recipe.title}\n\nPour ${recipe.servings} personnes\n\nIngrédients:\n${recipe.ingredients
-      .map(i => `- ${i.quantity}${i.unit || ''} ${i.name}`)
+      .map(i => `- ${i.quantity}${i.unit ? ' ' + i.unit : ''} ${i.name}`)
       .join('\n')}\n\nÉtapes:\n${recipe.steps.map(s => `${s.order}. ${s.text}`).join('\n')}`;
 
     if (navigator.clipboard) {
@@ -112,10 +116,6 @@ export const RecipeDetail = () => {
                   <span className="info-label">Taille de portion</span>
                   <span className="info-value">{recipe.servings}</span>
                 </div>
-                <div className="info-item">
-                  <span className="info-label">Échelle</span>
-                  <span className="info-value">1x</span>
-                </div>
               </div>
 
               {recipe.tags.length > 0 && (
@@ -140,7 +140,7 @@ export const RecipeDetail = () => {
                   <li key={index} className="ingredient-item">
                     <span className="ingredient-quantity">
                       {ingredient.quantity}
-                      {ingredient.unit || ''}
+                      {ingredient.unit ? ' ' + ingredient.unit : ''}
                     </span>
                     <span className="ingredient-name">{ingredient.name}</span>
                   </li>
@@ -154,7 +154,7 @@ export const RecipeDetail = () => {
               <ol className="steps-list">
                 {recipe.steps.map(step => (
                   <li key={step.order} className="step-item">
-                    <span className="step-number">{step.order}</span>
+                    <span className="step-number"></span>
                     <span className="step-text">{step.text}</span>
                   </li>
                 ))}

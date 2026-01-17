@@ -1,4 +1,5 @@
 import type { Recipe } from '../types/recipe';
+import { getRecipes as getRecipesFromApi } from './api';
 
 const RECIPES_KEY = 'recipekeeper_recipes';
 const AUTH_KEY = 'recipekeeper_auth';
@@ -17,43 +18,51 @@ export const storageService = {
     localStorage.removeItem(AUTH_KEY);
   },
 
-  // Recipes
-  getRecipes(): Recipe[] {
-    const data = localStorage.getItem(RECIPES_KEY);
-    if (!data) return [];
-    
+  // Recipes - récupère depuis l'API
+  async getRecipes(): Promise<Recipe[]> {
     try {
-      return JSON.parse(data);
-    } catch {
+      const response = await getRecipesFromApi();
+      if (response.data && Array.isArray(response.data)) {
+        // Mapper _id vers id pour compatibilité
+        return response.data.map((recipe: any) => ({
+          ...recipe,
+          id: recipe._id || recipe.id,
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error('Erreur lors de la récupération des recettes:', error);
       return [];
     }
   },
 
   addRecipe(recipe: Recipe): Recipe {
-    const recipes = this.getRecipes();
     const newRecipe = {
       ...recipe,
       id: Date.now().toString(),
       createdAt: new Date().toISOString(),
     };
+    // Pour l'instant, on garde le localStorage pour addRecipe
+    // À terme, ce sera un POST vers l'API
+    const recipes = JSON.parse(localStorage.getItem(RECIPES_KEY) || '[]');
     recipes.unshift(newRecipe);
     localStorage.setItem(RECIPES_KEY, JSON.stringify(recipes));
     return newRecipe;
   },
 
-  getRecipeById(id: string): Recipe | undefined {
-    const recipes = this.getRecipes();
+  async getRecipeById(id: string): Promise<Recipe | undefined> {
+    const recipes = await this.getRecipes();
     return recipes.find(r => r.id === id);
   },
 
-  getRecipesByTag(tag: string): Recipe[] {
-    const recipes = this.getRecipes();
+  async getRecipesByTag(tag: string): Promise<Recipe[]> {
+    const recipes = await this.getRecipes();
     if (tag === 'all') return recipes;
     return recipes.filter(r => r.tags.some(t => t.toLowerCase() === tag.toLowerCase()));
   },
 
-  searchRecipes(query: string): Recipe[] {
-    const recipes = this.getRecipes();
+  async searchRecipes(query: string): Promise<Recipe[]> {
+    const recipes = await this.getRecipes();
     const lowerQuery = query.toLowerCase();
     
     return recipes.filter(recipe => {

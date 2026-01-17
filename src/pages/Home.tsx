@@ -19,24 +19,28 @@ export const Home = () => {
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    const loadedRecipes = storageService.getRecipes();
-    setRecipes(loadedRecipes);
+    const loadRecipes = async () => {
+      const loadedRecipes = await storageService.getRecipes();
+      setRecipes(loadedRecipes);
 
-    // Extract categories from tags
-    const tagCounts = new Map<string, number>();
-    loadedRecipes.forEach(recipe => {
-      recipe.tags.forEach(tag => {
-        tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+      // Extract categories from tags
+      const tagCounts = new Map<string, number>();
+      loadedRecipes.forEach(recipe => {
+        recipe.tags.forEach(tag => {
+          tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+        });
       });
-    });
 
-    const cats: Category[] = Array.from(tagCounts.entries()).map(([tag, count]) => ({
-      name: tag,
-      displayName: tag.charAt(0).toUpperCase() + tag.slice(1),
-      count,
-    }));
+      const cats: Category[] = Array.from(tagCounts.entries()).map(([tag, count]) => ({
+        name: tag,
+        displayName: tag.charAt(0).toUpperCase() + tag.slice(1),
+        count,
+      }));
 
-    setCategories(cats);
+      setCategories(cats);
+    };
+
+    loadRecipes();
   }, []);
 
   const getFilteredRecipes = () => {
@@ -97,27 +101,47 @@ export const Home = () => {
                 </Link>
               </div>
             ) : (
-              <div className="categories-grid">
-                <Link to="/recipes" className="category-tile all">
-                  <div className="category-content">
-                    <span className="category-name">Tout</span>
-                    <span className="category-count">{recipes.length}</span>
-                  </div>
-                </Link>
-
-                {categories.map(category => (
-                  <Link
-                    key={category.name}
-                    to={`/recipes?tag=${category.name}`}
-                    className="category-tile"
-                  >
+              <>
+                <div className="categories-grid">
+                  <Link to="/recipes" className="category-tile all">
                     <div className="category-content">
-                      <span className="category-name">{category.displayName}</span>
-                      <span className="category-count">{category.count}</span>
+                      <span className="category-name">Tout</span>
+                      <span className="category-count">{recipes.length}</span>
                     </div>
                   </Link>
-                ))}
-              </div>
+
+                  {categories.map(category => (
+                    <Link
+                      key={category.name}
+                      to={`/recipes?tag=${category.name}`}
+                      className="category-tile"
+                    >
+                      <div className="category-content">
+                        <span className="category-name">{category.displayName}</span>
+                        <span className="category-count">{category.count}</span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+
+                <h2 style={{ marginTop: '40px', marginBottom: '20px', fontSize: '24px' }}>Toutes les recettes</h2>
+                <div className="recipes-list">
+                  {recipes.map(recipe => (
+                    <Link key={recipe.id} to={`/recipes/${recipe.id}`} className="recipe-card">
+                      <div className="recipe-image-placeholder">
+                        <span className="placeholder-icon">🍽️</span>
+                      </div>
+                      <div className="recipe-card-content">
+                        <h3>{recipe.title}</h3>
+                        <div className="recipe-meta">
+                          <span>👥 {recipe.servings}</span>
+                          <span>📝 {recipe.steps.length} étapes</span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </>
             )}
           </>
         )}

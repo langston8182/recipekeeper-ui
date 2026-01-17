@@ -8,23 +8,43 @@ import './RecipeList.css';
 export const RecipeList = () => {
   const [searchParams] = useSearchParams();
   const tag = searchParams.get('tag');
+  const search = searchParams.get('search');
   const [recipes, setRecipes] = useState<Recipe[]>([]);
 
   useEffect(() => {
-    if (tag) {
-      setRecipes(storageService.getRecipesByTag(tag));
-    } else {
-      setRecipes(storageService.getRecipes());
-    }
-  }, [tag]);
+    const loadRecipes = async () => {
+      if (search) {
+        const searchResults = await storageService.searchRecipes(search);
+        setRecipes(searchResults);
+      } else if (tag) {
+        const tagRecipes = await storageService.getRecipesByTag(tag);
+        setRecipes(tagRecipes);
+      } else {
+        const allRecipes = await storageService.getRecipes();
+        setRecipes(allRecipes);
+      }
+    };
+
+    loadRecipes();
+  }, [tag, search]);
+
+  const getTitle = () => {
+    if (search) return `Résultats pour "${search}"`;
+    if (tag) return `${tag.charAt(0).toUpperCase() + tag.slice(1)}`;
+    return 'Toutes les recettes';
+  };
 
   return (
     <div className="recipe-list-page">
       <Header />
 
       <div className="recipe-list-content">
+        <Link to="/" className="back-link">
+          ← Retour
+        </Link>
+
         <div className="list-header">
-          <h1>{tag ? `${tag.charAt(0).toUpperCase() + tag.slice(1)}` : 'Toutes les recettes'}</h1>
+          <h1>{getTitle()}</h1>
           <p>{recipes.length} recette{recipes.length !== 1 ? 's' : ''}</p>
         </div>
 

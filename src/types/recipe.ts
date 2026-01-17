@@ -53,3 +53,8 @@ export interface HealthCheckResponse {
     };
   };
 }
+
+export interface RecipesListResponse {
+  count: number;
+  data: Recipe[];
+}

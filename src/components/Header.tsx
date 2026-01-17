@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './Header.css';
@@ -5,10 +6,21 @@ import './Header.css';
 export const Header = () => {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/recipes?search=${encodeURIComponent(searchQuery.trim())}`);
+      setShowSearch(false);
+      setSearchQuery('');
+    }
   };
 
   return (
@@ -23,7 +35,11 @@ export const Header = () => {
           <Link to="/add" className="btn-icon" title="Ajouter une recette">
             <span>+</span>
           </Link>
-          <button className="btn-icon" title="Rechercher">
+          <button 
+            className="btn-icon" 
+            title="Rechercher"
+            onClick={() => setShowSearch(!showSearch)}
+          >
             <span>🔍</span>
           </button>
           <button className="btn-icon" onClick={handleLogout} title="Déconnexion">
@@ -31,6 +47,24 @@ export const Header = () => {
           </button>
         </div>
       </div>
+
+      {showSearch && (
+        <div className="header-search">
+          <form onSubmit={handleSearch}>
+            <input
+              type="text"
+              placeholder="Rechercher une recette..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              autoFocus
+              className="search-input"
+            />
+            <button type="submit" className="search-submit">
+              Rechercher
+            </button>
+          </form>
+        </div>
+      )}
     </header>
   );
 };

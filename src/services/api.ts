@@ -1,4 +1,4 @@
-import type { ExtractionRequest, ExtractionResponse, HealthCheckResponse } from '../types/recipe';
+import type { ExtractionRequest, ExtractionResponse, HealthCheckResponse, RecipesListResponse } from '../types/recipe';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 const AI_API_URL = import.meta.env.VITE_AI_API_URL || '';
@@ -52,6 +52,18 @@ export const checkHealth = async (): Promise<HealthCheckResponse> => {
   try {
     const response = await fetch(`${API_URL}/health`);
     return await handleResponse<HealthCheckResponse>(response);
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError('Erreur de connexion au serveur', 500);
+  }
+};
+
+export const getRecipes = async (): Promise<RecipesListResponse> => {
+  try {
+    const response = await fetch(`${API_URL}/recipes`);
+    return await handleResponse<RecipesListResponse>(response);
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
