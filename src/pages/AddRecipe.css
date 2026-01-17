@@ -1,0 +1,549 @@
+.add-recipe-page {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.add-recipe-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 32px 20px;
+}
+
+.add-recipe-content h1 {
+  font-size: 32px;
+  margin: 24px 0 32px;
+  color: #333;
+}
+
+.mode-selector {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 16px;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #666;
+  font-weight: 500;
+}
+
+.mode-btn:hover {
+  border-color: #f85032;
+  color: #f85032;
+}
+
+.mode-btn.active {
+  background: #f85032;
+  color: white;
+  border-color: #f85032;
+}
+
+.extraction-form {
+  background: white;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-section label {
+  font-weight: 600;
+  color: #333;
+  font-size: 16px;
+}
+
+.form-section textarea,
+.form-section input {
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.form-section textarea:focus,
+.form-section input:focus {
+  outline: none;
+  border-color: #f85032;
+}
+
+.form-section textarea {
+  resize: vertical;
+  min-height: 200px;
+}
+
+.form-section textarea::placeholder {
+  color: #999;
+  line-height: 1.6;
+}
+
+.file-upload-section {
+  margin: 16px 0;
+}
+
+.file-input {
+  display: none;
+}
+
+.upload-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.camera-button,
+.file-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.camera-button {
+  border-color: #f85032;
+  background: #fff5f3;
+}
+
+.camera-button:hover {
+  background: #ffe5e0;
+  border-color: #e73827;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(248, 80, 50, 0.2);
+}
+
+.file-button:hover {
+  border-color: #f85032;
+  background: #fafafa;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.button-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.button-text {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+.camera-button .button-text {
+  color: #f85032;
+}
+
+.camera-preview {
+  position: relative;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 16px 0;
+}
+
+.video-preview {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 500px;
+  object-fit: contain;
+}
+
+.camera-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 12px;
+  padding: 20px;
+  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+}
+
+.btn-capture,
+.btn-cancel {
+  flex: 1;
+  padding: 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-capture {
+  background: #f85032;
+  color: white;
+}
+
+.btn-capture:hover {
+  background: #e73827;
+  transform: scale(1.02);
+}
+
+.btn-cancel {
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+}
+
+.btn-cancel:hover {
+  background: white;
+}
+
+.file-upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  border: 2px dashed #ddd;
+  border-radius: 12px;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.file-upload-label:hover {
+  border-color: #f85032;
+  background: #fff5f3;
+}
+
+.upload-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.upload-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.upload-hint {
+  font-size: 14px;
+  color: #999;
+}
+
+.file-selected {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.file-icon {
+  font-size: 32px;
+}
+
+.file-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.file-name {
+  font-weight: 500;
+  color: #333;
+  font-size: 15px;
+}
+
+.file-size {
+  font-size: 13px;
+  color: #666;
+}
+
+.btn-remove {
+  background: #fee;
+  color: #c53030;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.btn-remove:hover {
+  background: #fdd;
+}
+
+.upload-notice {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.upload-notice p {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #0369a1;
+}
+
+.upload-notice p:last-child {
+  margin-bottom: 0;
+}
+
+.notice-text {
+  color: #666 !important;
+  line-height: 1.5;
+}
+
+.upload-placeholder {
+  text-align: center;
+  padding: 80px 20px;
+  color: #999;
+}
+
+.upload-placeholder p:first-child {
+  font-size: 64px;
+  margin: 0 0 16px 0;
+}
+
+.upload-placeholder h3 {
+  font-size: 20px;
+  margin: 0 0 12px 0;
+  color: #666;
+}
+
+.upload-description {
+  font-size: 14px;
+  margin: 0;
+  max-width: 400px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.error-message {
+  background: #fff5f5;
+  border: 1px solid #ffcccc;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 24px;
+}
+
+.error-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.error-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.error-text {
+  color: #c53030;
+  font-weight: 600;
+  flex: 1;
+}
+
+.error-help {
+  margin: 12px 0 0 36px;
+  color: #666;
+  font-size: 14px;
+}
+
+.error-toggle {
+  background: none;
+  border: none;
+  color: #c53030;
+  cursor: pointer;
+  font-size: 13px;
+  margin-top: 12px;
+  padding: 0;
+  font-weight: 500;
+}
+
+.error-toggle:hover {
+  text-decoration: underline;
+}
+
+.error-details {
+  margin-top: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #666;
+  font-family: monospace;
+}
+
+.error-details p {
+  margin: 4px 0;
+}
+
+.extracted-result {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  margin-top: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.result-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #2d9b5f;
+}
+
+.result-preview h3 {
+  font-size: 28px;
+  margin: 0 0 12px 0;
+  color: #333;
+}
+
+.result-meta {
+  color: #666;
+  margin: 0 0 24px 0;
+  font-size: 16px;
+}
+
+.result-section {
+  margin: 24px 0;
+}
+
+.result-section h4 {
+  font-size: 18px;
+  margin: 0 0 12px 0;
+  color: #333;
+}
+
+.result-section ul,
+.result-section ol {
+  margin: 0;
+  padding-left: 24px;
+  line-height: 1.8;
+  color: #555;
+}
+
+.result-section li {
+  margin: 4px 0;
+}
+
+.more-indicator {
+  color: #999;
+  font-style: italic;
+  font-weight: 500;
+}
+
+.result-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.tag {
+  background: #fff5f3;
+  color: #f85032;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .add-recipe-content h1 {
+    font-size: 28px;
+  }
+
+  .mode-selector {
+    flex-direction: column;
+  }
+
+  .extraction-form {
+    padding: 24px;
+  }
+
+  .result-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .result-header .btn-primary {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .add-recipe-content {
+    padding: 24px 16px;
+  }
+
+  .extraction-form {
+    padding: 20px;
+  }
+
+  .extracted-result {
+    padding: 24px;
+  }
+
+  .result-preview h3 {
+    font-size: 24px;
+  }
+
+  .mode-btn {
+    font-size: 14px;
+    padding: 12px;
+  }
+
+  .upload-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .camera-button,
+  .file-button {
+    padding: 32px 20px;
+  }
+}

@@ -1,0 +1,411 @@
+openapi: 3.0.3
+info:
+  title: RecipeKeeper AI API
+  description: |
+    API d'extraction intelligente de recettes utilisant AWS Bedrock.
+    
+    Supporte trois modes d'extraction :
+    - **Texte brut** : Envoyez du texte directement
+    - **URL** : Récupération et extraction depuis une page web
+    - **PDF/Images** : Upload sur S3 pour extraction via Textract
+  version: 1.0.0
+  contact:
+    name: RecipeKeeper Team
+  license:
+    name: MIT
+
+servers:
+  - url: https://api.recipekeeper.example.com/preprod
+    description: Environnement de préproduction
+  - url: https://api.recipekeeper.example.com/prod
+    description: Environnement de production
+
+tags:
+  - name: recipes
+    description: Extraction et gestion de recettes
+  - name: health
+    description: Monitoring et santé du service
+
+paths:
+  /extract:
+    post:
+      tags:
+        - recipes
+      summary: Extraire une recette depuis du texte ou une URL
+      description: |
+        Extrait une recette structurée à partir de texte brut ou d'une URL de page web.
+        L'API utilise AWS Bedrock pour analyser le contenu et générer un JSON structuré.
+      operationId: extractRecipe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/TextExtractionRequest'
+                - $ref: '#/components/schemas/UrlExtractionRequest'
+            examples:
+              fromText:
+                summary: Extraction depuis du texte
+                value:
+                  recipeText: |
+                    Pâtes Carbonara pour 4 personnes
+                    
+                    Ingrédients:
+                    - 400g de spaghetti
+                    - 200g de lardons
+                    - 4 œufs
+                    - 100g de parmesan
+                    
+                    Étapes:
+                    1. Cuire les pâtes al dente
+                    2. Faire revenir les lardons
+                    3. Mélanger les œufs et le parmesan
+                    4. Mélanger le tout hors du feu
+              fromUrl:
+                summary: Extraction depuis une URL
+                value:
+                  url: "https://www.marmiton.org/recettes/recette_pates-a-la-carbonara_11736.aspx"
+      responses:
+        '200':
+          description: Recette extraite avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExtractionSuccessResponse'
+              examples:
+                success:
+                  value:
+                    success: true
+                    data:
+                      recipe:
+                        title: "Pâtes Carbonara"
+                        servings: 4
+                        ingredients:
+                          - name: "spaghetti"
+                            quantity: 400
+                            unit: "g"
+                          - name: "lardons"
+                            quantity: 200
+                            unit: "g"
+                          - name: "œufs"
+                            quantity: 4
+                            unit: null
+                          - name: "parmesan"
+                            quantity: 100
+                            unit: "g"
+                        steps:
+                          - order: 1
+                            text: "Cuire les pâtes al dente"
+                          - order: 2
+                            text: "Faire revenir les lardons"
+                          - order: 3
+                            text: "Mélanger les œufs et le parmesan"
+                          - order: 4
+                            text: "Mélanger le tout hors du feu"
+                        tags:
+                          - "italien"
+                          - "pâtes"
+                          - "facile"
+                      apiResponse:
+                        statusCode: 201
+                        message: "Recipe created successfully"
+                      sourceUrl: "https://www.marmiton.org/recettes/recette_pates-a-la-carbonara_11736.aspx"
+                      extractedTextLength: 2847
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingParameter:
+                  value:
+                    success: false
+                    error: "Missing required parameter: url or recipeText"
+                    statusCode: 400
+                invalidUrl:
+                  value:
+                    success: false
+                    error: "Invalid URL format"
+                    statusCode: 400
+                textTooLong:
+                  value:
+                    success: false
+                    error: "Recipe text too long (max 50000 characters)"
+                    statusCode: 400
+        '422':
+          description: Contenu non traitable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                noRecipeFound:
+                  value:
+                    success: false
+                    error: "Could not extract valid recipe from text"
+                    statusCode: 422
+                    details:
+                      - "No structured recipe information found in the provided text"
+        '500':
+          description: Erreur serveur interne
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '502':
+          description: Erreur lors de la récupération de l'URL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                fetchError:
+                  value:
+                    success: false
+                    error: "Failed to fetch webpage"
+                    statusCode: 502
+                    details:
+                      - "HTTP 404: Not Found"
+        '503':
+          description: Service temporairement indisponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                bedrockUnavailable:
+                  value:
+                    success: false
+                    error: "AI service temporarily unavailable"
+                    statusCode: 503
+
+  /health:
+    get:
+      tags:
+        - health
+      summary: Vérifier l'état de santé du service
+      description: Endpoint de health check pour le monitoring
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service opérationnel
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResponse'
+              example:
+                success: true
+                data:
+                  status: "healthy"
+                  timestamp: "2026-01-17T10:30:00Z"
+                  version: "1.0.0"
+        '503':
+          description: Service non disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    TextExtractionRequest:
+      type: object
+      required:
+        - recipeText
+      properties:
+        recipeText:
+          type: string
+          description: Texte brut contenant la recette à extraire
+          maxLength: 50000
+          example: |
+            Recette de Tarte Tatin pour 6 personnes
+            
+            Ingrédients:
+            - 6 pommes
+            - 100g de beurre
+            - 150g de sucre
+            - 1 pâte feuilletée
+
+    UrlExtractionRequest:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+          description: URL de la page web contenant la recette
+          example: "https://www.marmiton.org/recettes/recette_tarte-tatin_12345.aspx"
+
+    Recipe:
+      type: object
+      required:
+        - title
+        - servings
+        - ingredients
+        - steps
+        - tags
+      properties:
+        title:
+          type: string
+          description: Titre de la recette
+          example: "Pâtes Carbonara"
+        servings:
+          type: integer
+          description: Nombre de portions
+          minimum: 1
+          example: 4
+        ingredients:
+          type: array
+          description: Liste des ingrédients
+          items:
+            $ref: '#/components/schemas/Ingredient'
+        steps:
+          type: array
+          description: Étapes de préparation
+          items:
+            $ref: '#/components/schemas/Step'
+        tags:
+          type: array
+          description: Tags pour catégoriser la recette
+          items:
+            type: string
+          example: ["italien", "pâtes", "facile"]
+
+    Ingredient:
+      type: object
+      required:
+        - name
+        - quantity
+      properties:
+        name:
+          type: string
+          description: Nom de l'ingrédient
+          example: "farine"
+        quantity:
+          type: number
+          description: Quantité de l'ingrédient
+          example: 250
+        unit:
+          type: string
+          nullable: true
+          description: Unité de mesure (peut être null)
+          example: "g"
+
+    Step:
+      type: object
+      required:
+        - order
+        - text
+      properties:
+        order:
+          type: integer
+          description: Ordre de l'étape
+          minimum: 1
+          example: 1
+        text:
+          type: string
+          description: Description de l'étape
+          example: "Préchauffer le four à 180°C"
+
+    ExtractionSuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            recipe:
+              $ref: '#/components/schemas/Recipe'
+            apiResponse:
+              type: object
+              description: Réponse de l'API recipekeeper lors de la sauvegarde
+              properties:
+                statusCode:
+                  type: integer
+                  example: 201
+                message:
+                  type: string
+                  example: "Recipe created successfully"
+            sourceUrl:
+              type: string
+              format: uri
+              description: URL source (si extraction depuis URL)
+              example: "https://example.com/recipe"
+            extractedTextLength:
+              type: integer
+              description: Longueur du texte extrait (si extraction depuis URL)
+              example: 3542
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+        - statusCode
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          description: Message d'erreur
+          example: "Invalid URL format"
+        statusCode:
+          type: integer
+          description: Code de statut HTTP
+          example: 400
+        details:
+          type: array
+          description: Détails supplémentaires sur l'erreur
+          items:
+            type: string
+          example: ["The provided URL is not accessible"]
+
+    HealthCheckResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [healthy, degraded, unhealthy]
+              example: "healthy"
+            timestamp:
+              type: string
+              format: date-time
+              example: "2026-01-17T10:30:00Z"
+            version:
+              type: string
+              example: "1.0.0"
+            services:
+              type: object
+              description: État des services dépendants
+              properties:
+                bedrock:
+                  type: string
+                  enum: [available, unavailable]
+                  example: "available"
+                textract:
+                  type: string
+                  enum: [available, unavailable]
+                  example: "available"
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Clé API pour l'authentification (si activée)
+
+# Décommentez si l'authentification est activée
+# security:
+#   - ApiKeyAuth: []
