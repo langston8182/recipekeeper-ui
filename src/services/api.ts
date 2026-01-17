@@ -62,7 +62,7 @@ export const checkHealth = async (): Promise<HealthCheckResponse> => {
 export const uploadRecipeFile = async (file: File): Promise<ExtractionResponse> => {
   try {
     // Étape 1 : Récupérer l'URL présignée
-    const uploadResponse = await fetch('https://recipekeeper-api-preprod.cyrilmarchive.com/recipes/upload', {
+    const uploadResponse = await fetch(`${API_URL}/recipes/upload`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
